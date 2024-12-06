@@ -8,7 +8,7 @@ service:
   targetPort: 5000
   type: ClusterIP # Or LoadBalancer
 ingress:
-  enabled: true  # To enable or disable the ingress
+  enabled: false  # To enable or disable the ingress
   host: bskyposter.steeped.space
   tlsSecretName: pybspostergcp-tls
   ingressClass: nginx
