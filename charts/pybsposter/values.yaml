@@ -1,0 +1,22 @@
+replicas: 1
+image:
+  repository: harbor.freshbrewed.science/library/pybsposter
+  tag: latest
+  pullPolicy: IfNotPresent # Or Always if you want to always pull the latest image
+service:
+  port: 80
+  targetPort: 5000
+  type: ClusterIP # Or LoadBalancer
+ingress:
+  enabled: true  # To enable or disable the ingress
+  host: bskyposter.steeped.space
+  tlsSecretName: pybspostergcp-tls
+  ingressClass: nginx
+  certManagerIssuer: gcpleprod2 # Or "letsencrypt-prod" or similar - your clusterissuer
+  sslRedirect: "true"
+  tlsAcme: "true"
+  connectTimeout: "3600"
+  readTimeout: "3600"
+  sendTimeout: "3600"
+  clientMaxBodySize: "0"
+  proxyBodySize: "0"

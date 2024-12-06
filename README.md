@@ -37,6 +37,21 @@ Forwarding from [::1]:5550 -> 5000
 
 Obviously with Kubernetes you can fire up an ingress and serve things up (as I did), but the options are there.
 
+# Helm Install
+
+There is a helm chart you can modify and use:
+```
+$ helm install pybsposter ./charts/pybsposter
+NAME: pybsposter
+LAST DEPLOYED: Fri Dec  6 07:37:34 2024
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+```
+
+
+
 ## Future improvements
 
 Right now it does not check if the total length exceeds the BlueSky limit (which I believe at present in 300 characters).

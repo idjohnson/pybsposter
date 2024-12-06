@@ -1,0 +1,38 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "pybsposter.fullname" . }}
+  labels:
+    {{- include "pybsposter.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.certManagerIssuer | quote }}
+    ingress.kubernetes.io/proxy-body-size: {{ .Values.ingress.proxyBodySize | quote }}
+    ingress.kubernetes.io/ssl-redirect: {{ .Values.ingress.sslRedirect | quote }}
+    kubernetes.io/ingress.class: {{ .Values.ingress.ingressClass | quote }}
+    kubernetes.io/tls-acme: {{ .Values.ingress.tlsAcme | quote }}
+    nginx.ingress.kubernetes.io/proxy-body-size: {{ .Values.ingress.proxyBodySize | quote }}
+    nginx.ingress.kubernetes.io/proxy-read-timeout: {{ .Values.ingress.readTimeout | quote }}
+    nginx.ingress.kubernetes.io/proxy-send-timeout: {{ .Values.ingress.sendTimeout | quote }}
+    nginx.ingress.kubernetes.io/ssl-redirect: {{ .Values.ingress.sslRedirect | quote }}
+    nginx.org/client-max-body-size: {{ .Values.ingress.proxyBodySize | quote }}
+    nginx.org/proxy-connect-timeout: {{ .Values.ingress.connectTimeout | quote }}
+    nginx.org/proxy-read-timeout: {{ .Values.ingress.readTimeout | quote }}
+    nginx.org/websocket-services: {{ include "pybsposter.fullname" . }}
+spec:
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http:
+      paths:
+      - backend:
+          service:
+            name: {{ include "pybsposter.fullname" . }}
+            port:
+              number: {{ .Values.service.port }}
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - {{ .Values.ingress.host }}
+    secretName: {{ .Values.ingress.tlsSecretName }}
+{{- end }}
