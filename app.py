@@ -12,6 +12,11 @@ def handle_post():
     text = data.get('TEXT')
     link = data.get('LINK')
 
+    # Calculate the total length of text and link 
+    total_length = len(text) + len(link)
+    if total_length > 300:
+        text = text[:(300 - len(link))]
+        
     client = Client()
     profile = client.login(username, password)
     

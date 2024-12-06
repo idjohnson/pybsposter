@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: pybsposter
-          image: idjohnson/pybsposter:latest
+          image: harbor.freshbrewed.science/library/pybsposter:latest
           ports:
             - containerPort: 5000
 ---

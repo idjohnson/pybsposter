@@ -16,6 +16,11 @@ $ docker run -d -p 5550:5000 idjohnson/pybsposter:latest
 $ curl -X POST http://localhost:5550/post -H "Content-Type: application/json" -d @payload.json
 ```
 
+Note: there is a non dockerhub instance you can use at:
+```
+harbor.freshbrewed.science/library/pybsposter:latest
+```
+
 Or you can launch into Kubernetes with the manifest:
 ```
 $ kubectl apply -f ./deploy.yaml
