@@ -40,7 +40,7 @@ jobs:
           docker push $FINALBUILDLATEST
           # Push Charts
           export CVER="`cat ./charts/pybsposter/Chart.yaml | grep 'version:' | sed 's/version: //' | tr -d '\n'`"
-          helm push ./charts/pybsposter/pybsposter-$CVER.tgz oci://harbor.freshbrewed.science/library/
+          helm push ./charts/pybsposter-$CVER.tgz oci://harbor.freshbrewed.science/library/
         env: # Or as an environment variable
           CR_PAT: ${{ secrets.CR_PAT }}
           CR_USER: ${{ secrets.CR_USER }}
