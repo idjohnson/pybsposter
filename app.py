@@ -15,8 +15,8 @@ def handle_post():
     # Calculate the total length of text and link 
     total_length = len(text) + len(link)
     if total_length > 300:
-        text = text[:(300 - len(link))]
-        
+        text = text[:(300 - len(link) - 3)] + "..."  # Trim and add ellipsis
+
     client = Client()
     profile = client.login(username, password)
     
