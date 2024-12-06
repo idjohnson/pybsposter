@@ -1,0 +1,68 @@
+name: PR And Main Build
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+  
+jobs:
+  cicd:
+    runs-on: ubuntu-latest  
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a $ event."
+      - run: echo "🐧 This job is now running on a $ server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is $ and your repository is $."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - run: echo "💡 The $ repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      - name: Check on Binaries
+        run: |
+          which az
+          which aws
+      - name: Build Dockerfile
+        run: |
+          export BUILDIMGTAG="`cat Dockerfile | tail -n1 | sed 's/^.*\///g'`"
+          docker build -t $BUILDIMGTAG .
+          docker images
+      - id: tagandpush
+        name: Tag and Push
+        run: |
+          export BUILDIMGTAG="`cat Dockerfile | tail -n1 | sed 's/^.*\///g'`"
+          export FINALBUILDTAG="`cat Dockerfile | tail -n1 | sed 's/^#//g'`"
+          docker tag $BUILDIMGTAG $FINALBUILDTAG
+          docker images
+          echo $CR_PAT | docker login harbor.freshbrewed.science -u $CR_USER --password-stdin
+          docker push $FINALBUILDTAG
+        env: # Or as an environment variable
+          CR_PAT: ${{ secrets.CR_PAT }}
+          CR_USER: ${{ secrets.CR_USER }}
+        if: github.ref == 'refs/heads/main'
+      - id: tagnpushdry
+        name: Tag and Push (DRY RUN)
+        run: |
+          export BUILDIMGTAG="`cat Dockerfile | tail -n1 | sed 's/^.*\///g'`"
+          export FINALBUILDTAG="`cat Dockerfile | tail -n1 | sed 's/^#//g'`"
+          docker tag $BUILDIMGTAG $FINALBUILDTAG
+          docker images
+          echo $CR_PAT | docker login harbor.freshbrewed.science -u $CR_USER --password-stdin
+          # SHOW THE COMMAND
+          echo "IF we were on main, we would: docker push $FINALBUILDTAG"
+        env: # Or as an environment variable
+          CR_PAT: ${{ secrets.CR_PAT }}
+          CR_USER: ${{ secrets.CR_USER }}
+        if: github.ref != 'refs/heads/main'
+      - name: Build count
+        uses: masci/datadog@v1
+        with:
+          api-key: ${{ secrets.DATADOG_API_KEY }}
+          metrics: |
+            - type: "count"
+              name: "dockerbuild.runs.count"
+              value: 1.0
+              host: ${{ github.repository_owner }}
+              tags:
+                - "project:${{ github.repository }}"
+                - "branch:${{ github.head_ref }}"
+      - run: echo "🍏 This job's status is $."
