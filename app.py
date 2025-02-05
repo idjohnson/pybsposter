@@ -17,23 +17,28 @@ def handle_post():
     if total_length > 300:
         text = text[:(300 - len(link) - 4)] + "... "  # Trim and add ellipsis
 
-    client = Client()
+    try:
+        client = Client()
+    except Exception as e:
+        print(f"Failed to connect to server: {e}")
+
     profile = client.login(username, password)
     
     builder = client_utils.TextBuilder().text(text).link(link,link)
     text_string = str(builder) # Convert TextBuilder to a string
-    post = client.send_post(builder)
-    # Don't really need to like my own posts
-    # client.like(post.uri, post.cid)
 
-    response = {
-        
-        "YOU ARE:": profile.display_name,
-        "TEXT": text_string,
-        "LINK": link
-    }
-    
-    return jsonify(response)
+    try:
+        post = client.send_post(builder)
+        response = {
+            "YOU ARE:": profile.display_name,
+            "TEXT": text_string,
+            "LINK": link
+        }
+
+        return jsonify(response)
+    except Exception as e:
+        print(f"Failed to post: {e}")
+        return {'error': 'Failed to send post'}, 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
