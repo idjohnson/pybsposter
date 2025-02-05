@@ -26,7 +26,7 @@ jobs:
           cd charts
           helm package pybsposter
       - id: tagandpush
-        name: Tag and Push
+        name: Tag and Push (Harbor)
         run: |
           export BUILDIMGTAG="`cat Dockerfile | tail -n1 | sed 's/^.*\///g'`"
           export FINALBUILDTAG="`cat Dockerfile | tail -n1 | sed 's/^#//g'`"
@@ -44,6 +44,27 @@ jobs:
         env: # Or as an environment variable
           CR_PAT: ${{ secrets.CR_PAT }}
           CR_USER: ${{ secrets.CR_USER }}
+        if: github.ref == 'refs/heads/main'
+      - id: tagandpushdh
+        name: Tag and Push (Dockerhub)
+        run: |
+          export BUILDIMGTAG="`cat Dockerfile | tail -n1 | sed 's/^.*\///g'`"
+          # Note the replacement to Dockerhub
+          export FINALBUILDTAG="`cat Dockerfile | tail -n1 | sed 's/^#.*\//idjohnson\//g'`"
+          export FINALBUILDLATEST="`cat Dockerfile | tail -n1 | sed 's/^#//g' | sed 's/:.*/:latest/'`"
+          docker tag $BUILDIMGTAG $FINALBUILDTAG
+          docker tag $BUILDIMGTAG $FINALBUILDLATEST
+          docker images
+          echo $CR_PAT | docker login -u $CR_USER --password-stdin
+          docker push "$FINALBUILDTAG"
+          # add a "latest" for others to use
+          docker push $FINALBUILDLATEST
+          # Push Charts
+          export CVER="`cat ./charts/pybsposter/Chart.yaml | grep 'version:' | sed 's/version: //' | tr -d '\n'`"
+          #helm push ./charts/pybsposter-$CVER.tgz oci://harbor.freshbrewed.science/library/
+        env: # Or as an environment variable
+          CR_PAT: ${{ secrets.DH_PAT }}
+          CR_USER: ${{ secrets.DH_USER }}
         if: github.ref == 'refs/heads/main'
       - id: tagnpushdry
         name: Tag and Push (DRY RUN)
