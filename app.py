@@ -11,22 +11,16 @@ def index():
         # Get uptime using "uptime" command and parse output
         # ["cat", "/proc/uptime", "|", "sed '{print $2}'"], 
         uptime_output = subprocess.run(
-            ["awk '{print $1}'", "/proc/uptime"], 
+            ["uptime"], 
             capture_output=True, 
             text=True,
             shell=True
         )
         
-        if uptime_output.returncode == 0:
-            print("Response:", flush=True)
-            print(uptime_output.stdout, flush=True)
-            print("STDERR:", flush=True)
-            print(uptime_output.stderr, flush=True)
+        uptimeoutput = "N/A"
 
-            uptime_seconds = float(uptime_output.stdout.strip())
-            minutes, seconds = divmod(int(uptime_seconds * 60), 60)
-        else:
-            minutes, seconds = "N/A", "N/A"
+        if uptime_output.returncode == 0:
+            uptimeoutput = uptime_output.stdout
             
         # Get current time
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -49,8 +43,20 @@ def index():
         uptime_seconds, current_time, logs = "N/A", "N/A", ["Error reading metrics or logs"]
 
     return f"""
+        <pre>
+         ______        ______      ______              _               
+        | ___ \       | ___ \     | ___ \            | |              
+        | |_/ / _   _ | |_/ / ___ | |_/ /  ___   ___ | |_   ___  _ __ 
+        |  __/ | | | || ___ \/ __||  __/  / _ \ / __|| __| / _ \| '__|
+        | |    | |_| || |_/ /\__ \| |    | (_) |\__ \| |_ |  __/| |   
+        \_|     \__, |\____/ |___/\_|     \___/ |___/ \__| \___||_|   
+                __/ |                                                
+                |___/                                                 
+        </pre>
+        <br/>
+        <br/>
         <h1>Container Metrics</h1>
-        <p>Uptime: {minutes} minutes and {seconds} seconds</p>
+        <p>Uptime: {uptimeoutput}</p>
         <p>Last Updated: {current_time}</p>
         <h2>Recent Logs:</h2>
         <ul>{''.join(f'<li>{log}</li>' for log in logs)}</ul>
