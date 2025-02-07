@@ -1,6 +1,10 @@
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
+RUN DEBIAN_FRONTEND=noninteractive apt update -y \
+  && umask 0002 \
+  && DEBIAN_FRONTEND=noninteractive apt install -y procps
+
 # Set the working directory to /app
 WORKDIR /app
 
