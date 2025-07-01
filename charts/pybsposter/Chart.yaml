@@ -2,6 +2,6 @@ apiVersion: v2
 name: pybsposter
 description: A Helm chart for deploying the pybsposter application
 type: application
-version: 0.1.2
+version: 0.1.3
 appVersion: "2.0"
 
