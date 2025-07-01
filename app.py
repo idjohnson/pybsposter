@@ -14,6 +14,11 @@ class SocialPost(BaseModel):
     text: str
     link: str | None = None
 
+    class Config:
+        allow_population_by_field_name = True
+        alias_generator = lambda s: s.upper()
+        populate_by_name = True
+
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     try:

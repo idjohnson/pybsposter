@@ -26,4 +26,4 @@ ENV NAME=World
 # Run app.py when the container launches
 CMD ["fastapi", "run", "app.py"]
 
-#harbor.freshbrewed.science/library/pybsposter:0.1.0
+#harbor.freshbrewed.science/library/pybsposter:0.1.1
