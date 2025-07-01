@@ -5,7 +5,7 @@ image:
   pullPolicy: IfNotPresent # Or Always if you want to always pull the latest image
 service:
   port: 80
-  targetPort: 5000
+  targetPort: 8000
   type: ClusterIP # Or LoadBalancer
 ingress:
   enabled: false  # To enable or disable the ingress
@@ -20,3 +20,10 @@ ingress:
   sendTimeout: "3600"
   clientMaxBodySize: "0"
   proxyBodySize: "0"
+resources:
+  requests:
+    cpu: 15m
+    memory: 105Mi
+  limits:
+    cpu: 15m
+    memory: 133Mi

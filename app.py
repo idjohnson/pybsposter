@@ -1,12 +1,21 @@
-from flask import Flask, request, jsonify
-from atproto import Client, client_utils
+from typing import Union
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from datetime import datetime
+from atproto import Client, client_utils
+from pydantic import BaseModel
 import subprocess
 
-app = Flask(__name__)
+app = FastAPI()
 
-@app.route('/')
-def index():
+class SocialPost(BaseModel):
+    username: str
+    password: str
+    text: str
+    link: str | None = None
+
+@app.get("/", response_class=HTMLResponse)
+def read_root():
     try:
         # Get uptime using "uptime" command and parse output
         # ["cat", "/proc/uptime", "|", "sed '{print $2}'"], 
@@ -62,16 +71,22 @@ def index():
         <ul>{''.join(f'<li>{log}</li>' for log in logs)}</ul>
     """
 
-@app.route('/post', methods=['POST'])
-def handle_post():
-    data = request.json
-    
-    username = data.get('USERNAME')
-    password = data.get('PASSWORD')
-    text = data.get('TEXT')
-    link = data.get('LINK')
+
+
+@app.post("/post")
+async def post_social(post: SocialPost):
+    # Debug
+    # print(f"Received username: {post.username}", flush=True)
+    # print(f"Received password: {post.password}", flush=True)
+    # print(f"Received text: {post.text}", flush=True)
+    # print(f"Received link: {post.link}", flush=True)
 
     # Calculate the total length of text and link 
+    text = post.text
+    link = post.link if post.link else ""
+    username = post.username
+    password = post.password
+
     total_length = len(text) + len(link)
     if total_length > 300:
         text = text[:(300 - len(link) - 4)] + "... "  # Trim and add ellipsis
@@ -94,10 +109,8 @@ def handle_post():
             "LINK": link
         }
 
-        return jsonify(response)
+        return response
     except Exception as e:
         print(f"Failed to post: {e}")
         return {'error': 'Failed to send post'}, 500
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
