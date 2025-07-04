@@ -1,6 +1,7 @@
 from typing import Union
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from datetime import datetime
 from atproto import Client, client_utils
 from pydantic import BaseModel
@@ -10,6 +11,10 @@ import os
 
 
 app = FastAPI()
+
+
+# Mount the `static` directory to serve static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class SocialPost(BaseModel):
     username: str
@@ -63,24 +68,67 @@ def read_root():
     app_version = os.environ.get("VERSION", "unknown")
 
     return f"""
-        <pre>
-         ______        ______      ______              _               
-        | ___ \       | ___ \     | ___ \            | |              
-        | |_/ / _   _ | |_/ / ___ | |_/ /  ___   ___ | |_   ___  _ __ 
-        |  __/ | | | || ___ \/ __||  __/  / _ \ / __|| __| / _ \| '__|
-        | |    | |_| || |_/ /\__ \| |    | (_) |\__ \| |_ |  __/| |   
-        \_|     \__, |\____/ |___/\_|     \___/ |___/ \__| \___||_|   
-                __/ |                                                
-                |___/                                                 
-        </pre>
-        <br/>
-        <br/>
-        <h1>Container Metrics</h1>
-        <p><b>App Version:</b> {app_version}</p>
-        <p>Uptime: {uptimeoutput}</p>
-        <p>Last Updated: {current_time}</p>
-        <h2>Recent Logs:</h2>
-        <ul>{''.join(f'<li>{log}</li>' for log in logs)}</ul>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>PyBsPoster</title>
+            <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f9;
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                }}
+                .container {{
+                    text-align: center;
+                    background: #ffffff;
+                    padding: 2em;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                }}
+                .logo {{
+                    max-width: 200px;
+                }}
+                .title {{
+                    color: #333;
+                    font-size: 1.2em;
+                    margin: 20px 0;
+                }}
+                h1 {{
+                    color: #333;
+                    font-size: 2em;
+                }}
+                p {{
+                    color: #555;
+                    font-size: 1.2em;
+                }}
+                .version {{
+                    margin-top: 1em;
+                    font-weight: bold;
+                    color: #007BFF;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <img src="/static/logo3.png" alt="Logo" class="logo">
+                <h1 class="title">Welcome to PyBSPoster</h1>
+                <p>The application is running smoothly.</p>
+                <p>Documentation for this instance can be found:</p>
+                <div class="title"><a href="/docs">Swagger (OpenAPI)</a><br/><a href="/redoc">Redocs</a><br/></div>
+                <div class="version">Version: {app_version}</div><br/><br/>
+                <div>Uptime: {uptimeoutput}</div><br/><br/>
+                <div>Last Updated: {current_time}</div>
+            </div>
+        </body>
+        </html>
     """
 
 
@@ -116,6 +164,18 @@ async def preview_social(post: SocialPost):
 
 @app.post("/post")
 async def post_social(post: SocialPost):
+    """
+    Post to BlueSky.
+
+    Args:
+        post (SocialPost): Contains the text, optional link
+        username and password for your BlueSky account.
+
+        NOTE: baseURL is not used for BlueSky, but is included for consistency.
+
+    Returns:
+        Response from Bluesky or status message.
+    """
     # Debug
     # print(f"Received username: {post.username}", flush=True)
     # print(f"Received password: {post.password}", flush=True)
@@ -166,8 +226,10 @@ async def post_to_mastodon(post: SocialPost):
         post (SocialPost): Contains the text, optional link, and the Mastodon instance URL (baseURL).
         the password is the API key for Mastodon.
 
+        NOTE: The username is not used for Mastodon, but is included for consistency.
+
     Returns:
-        dict: Response from Mastodon or status message.
+        Response from Mastodon or status message.
     """
     # Ensure the baseURL is provided for Mastodon posts
     if not post.baseURL:
