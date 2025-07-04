@@ -5,6 +5,9 @@ from datetime import datetime
 from atproto import Client, client_utils
 from pydantic import BaseModel
 import subprocess
+import requests
+import os
+
 
 app = FastAPI()
 
@@ -13,6 +16,7 @@ class SocialPost(BaseModel):
     password: str
     text: str
     link: str | None = None
+    baseURL: Union[str, None] = None  # Mastodon root URL (optional)
 
     class Config:
         allow_population_by_field_name = True
@@ -21,9 +25,8 @@ class SocialPost(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
+    # Existing code remains unchanged
     try:
-        # Get uptime using "uptime" command and parse output
-        # ["cat", "/proc/uptime", "|", "sed '{print $2}'"], 
         uptime_output = subprocess.run(
             ["uptime"], 
             capture_output=True, 
@@ -77,6 +80,35 @@ def read_root():
     """
 
 
+@app.post("/preview")
+async def preview_social(post: SocialPost):
+    """
+    Generate a text preview of the user's post with trimming logic applied.
+    
+    Args:
+        post (SocialPost): The post data including username, text, and optional link.
+
+    Returns:
+        dict: A dictionary containing the trimmed preview text and link.
+    """
+    # Extract text and link from the user's input
+    text = post.text
+    link = post.link if post.link else ""
+
+    # Calculate the total length of text and link
+    total_length = len(text) + len(link)
+    
+    # Trim the text if combined length exceeds 300 characters
+    if total_length > 300:
+        preview_text = text[:(300 - len(link) - 4)] + "... "  # Trim and add ellipsis
+    else:
+        preview_text = text
+
+    # Return the preview response
+    return {
+        "preview_text": preview_text,
+        "link": link
+    }
 
 @app.post("/post")
 async def post_social(post: SocialPost):
@@ -119,3 +151,56 @@ async def post_social(post: SocialPost):
         print(f"Failed to post: {e}")
         return {'error': 'Failed to send post'}, 500
 
+
+
+@app.post("/post/mastodon")
+async def post_to_mastodon(post: SocialPost):
+    """
+    Post to Mastodon.
+
+    Args:
+        post (SocialPost): Contains the text, optional link, and the Mastodon instance URL (baseURL).
+        the password is the API key for Mastodon.
+
+    Returns:
+        dict: Response from Mastodon or status message.
+    """
+    # Ensure the baseURL is provided for Mastodon posts
+    if not post.baseURL:
+        raise HTTPException(status_code=400, detail="baseURL is required for Mastodon posting.")
+
+    # Construct the API URL from the baseURL provided
+    mastodon_api_url = f"{post.baseURL.rstrip('/')}/api/v1/statuses"
+
+    # Construct the payload for Mastodon API
+    text = post.text[:499] + "..." if len(post.text) > 499 else post.text
+    payload = {
+        "status": text + (" " + post.link if post.link else "")
+    }
+
+    # The API Key will be used as the password for authentication
+    if not post.password:
+        raise HTTPException(status_code=400, detail="Password (API key) is required for Mastodon posting.")
+    mastodon_api_key = post.password
+
+    if not mastodon_api_key:
+        raise HTTPException(status_code=500, detail="Missing Mastodon API key")
+
+    # Send POST request to Mastodon API
+    try:
+        response = requests.post(
+            mastodon_api_url,
+            json=payload,
+            headers={
+                "Authorization": f"Bearer {mastodon_api_key}",
+                "Content-Type": "application/json"
+            }
+        )
+        # Check if Mastodon accepted the post
+        if response.status_code == 200:
+            return {"message": "Post successfully shared on Mastodon"}
+        else:
+            response.raise_for_status()
+    except Exception as e:
+        print(f"Failed to post to Mastodon: {e}")
+        return {'error': 'Failed to send post'}, 500
