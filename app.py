@@ -77,6 +77,35 @@ def read_root():
     """
 
 
+@app.post("/preview")
+async def preview_social(post: SocialPost):
+    """
+    Generate a text preview of the user's post with trimming logic applied.
+    
+    Args:
+        post (SocialPost): The post data including username, text, and optional link.
+
+    Returns:
+        dict: A dictionary containing the trimmed preview text and link.
+    """
+    # Extract text and link from the user's input
+    text = post.text
+    link = post.link if post.link else ""
+
+    # Calculate the total length of text and link
+    total_length = len(text) + len(link)
+    
+    # Trim the text if combined length exceeds 300 characters
+    if total_length > 300:
+        preview_text = text[:(300 - len(link) - 4)] + "... "  # Trim and add ellipsis
+    else:
+        preview_text = text
+
+    # Return the preview response
+    return {
+        "preview_text": preview_text,
+        "link": link
+    }
 
 @app.post("/post")
 async def post_social(post: SocialPost):
