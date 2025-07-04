@@ -22,8 +22,9 @@ EXPOSE 8000
 
 # Define environment variable
 ENV NAME=World
+ENV VERSION=dev
 
 # Run app.py when the container launches
 CMD ["fastapi", "run", "app.py"]
 
-#harbor.freshbrewed.science/library/pybsposter:0.2.0
+#harbor.freshbrewed.science/library/pybsposter:0.2.1

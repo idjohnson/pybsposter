@@ -20,6 +20,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
           - containerPort: {{ .Values.service.targetPort }}
+          env:
+            - name: VERSION
+              value: "{{ .Values.image.tag }}"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
 
