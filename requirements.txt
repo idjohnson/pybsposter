@@ -2,3 +2,4 @@ flask
 atproto
 fastapi
 pydantic
+requests
