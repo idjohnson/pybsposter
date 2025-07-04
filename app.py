@@ -59,6 +59,9 @@ def read_root():
         print(f"Error: {e}")
         uptime_seconds, current_time, logs = "N/A", "N/A", ["Error reading metrics or logs"]
 
+    # Get app version from environment variable
+    app_version = os.environ.get("VERSION", "unknown")
+
     return f"""
         <pre>
          ______        ______      ______              _               
@@ -73,6 +76,7 @@ def read_root():
         <br/>
         <br/>
         <h1>Container Metrics</h1>
+        <p><b>App Version:</b> {app_version}</p>
         <p>Uptime: {uptimeoutput}</p>
         <p>Last Updated: {current_time}</p>
         <h2>Recent Logs:</h2>
