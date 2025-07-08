@@ -2,6 +2,23 @@
 
 I wanted a simple flow I could put into a Github or Azure DevOps pipeline.  Tho, in truth, this works for anything that one might want to slap a webhook out there for posting a link to BlueSky
 
+## How to Build and Run
+
+You can build and test the service locally using Docker.
+
+1. **Build the Docker image:**
+   ```bash
+   docker build -t mytest:01 .
+   ```
+
+2. **Run the Docker container:**
+   To run the container and display a version (e.g., the current Git SHA), you can set the `VERSION` environment variable.
+
+   ```bash
+   docker run -p 8000:8000 -e VERSION=$(git rev-parse --short HEAD) mytest:01
+   ```
+   *Note: The service runs on port 8000 inside the container.*
+
 ## Usage
 
 Just create a payload JSON with your username and password
