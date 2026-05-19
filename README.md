@@ -74,6 +74,58 @@ Instead, **create a dedicated App Password** from your BlueSky settings. This is
 
 To post to Mastodon, send a `POST` request to the `/post/mastodon` endpoint with a JSON payload.
 
+---
+
+### Threads
+
+To post to Threads, send a `POST` request to the `/post/threads` endpoint with a JSON payload.
+
+#### Endpoint
+
+`POST /post/threads`
+
+#### Payload Parameters
+
+*   `user_id` (string, required): Your Threads user ID.
+*   `access_token` (string, required): Your Threads **Access Token**. This is used for authentication with the Threads API.
+*   `text` (string, required): The text content of your post.
+*   `link` (string, optional): A URL to include in your post.
+
+#### :warning: Security Warning (Threads)
+
+**DO NOT use your primary Threads/Instagram password.** You must use an **Access Token** for authentication.
+
+To obtain a Threads Access Token:
+
+1.  Create a Threads app in the [Meta for Developers](https://developers.facebook.com/) portal.
+2.  Configure your app with the necessary permissions for posting (`threads_basic` and `threads_content_publish`).
+3.  Complete the OAuth flow to obtain a long-lived access token.
+4.  Your **user_id** can be obtained from the Threads API after authentication.
+5.  Use the access token as the `access_token` in your payload.
+
+Refer to the [Threads API documentation](https://developers.facebook.com/docs/threads) for detailed setup instructions.
+
+#### Example `curl` Request (Threads)
+
+1.  **Create the payload file (e.g., `threads-payload.json`):**
+    ```json
+    {
+        "user_id": "123456789",
+        "access_token": "YOUR_THREADS_ACCESS_TOKEN",
+        "text": "Hello from pybsposter!",
+        "link": "https://freshbrewed.science"
+    }
+    ```
+
+2.  **Send the request:**
+    ```bash
+    curl -X POST http://localhost:5550/post/threads \
+         -H "Content-Type: application/json" \
+         -d @threads-payload.json
+    ```
+
+---
+
 #### Endpoint
 
 `POST /post/mastodon`

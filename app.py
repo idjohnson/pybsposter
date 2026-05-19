@@ -8,6 +8,12 @@ from pydantic import BaseModel
 import subprocess
 import requests
 import os
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+import json
+
+THREADS_API_BASE = "https://graph.threads.net/v1.0"
 
 
 app = FastAPI()
@@ -270,3 +276,63 @@ async def post_to_mastodon(post: SocialPost):
     except Exception as e:
         print(f"Failed to post to Mastodon: {e}")
         return {'error': 'Failed to send post'}, 500
+
+
+def _threads_request(endpoint: str, payload: dict) -> dict:
+    url = f"{THREADS_API_BASE}/{endpoint}"
+    data = urlencode(payload).encode("utf-8")
+    req = Request(url, data=data, method="POST")
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    try:
+        with urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except HTTPError as exc:
+        err = json.loads(exc.read().decode("utf-8", errors="replace"))
+        raise RuntimeError(f"Threads API error ({exc.code}): {err}") from exc
+    except URLError as exc:
+        raise RuntimeError(f"Threads network error: {exc}") from exc
+
+
+class ThreadsPost(BaseModel):
+    user_id: str
+    access_token: str
+    text: str
+    link: str | None = None
+
+
+@app.post("/post/threads")
+async def post_to_threads(post: ThreadsPost):
+    """
+    Post to Threads.
+
+    Args:
+        post (ThreadsPost): user_id, access_token, text, and optional link.
+
+    Returns:
+        dict with the published post ID.
+    """
+    user_id = post.user_id
+    access_token = post.access_token
+
+    content = post.text + (" " + post.link if post.link else "")
+
+    try:
+        create_resp = _threads_request(
+            f"{user_id}/threads",
+            {"media_type": "TEXT", "text": content, "access_token": access_token},
+        )
+        creation_id = create_resp.get("id")
+        if not creation_id:
+            raise RuntimeError(f"No creation id in response: {create_resp}")
+
+        publish_resp = _threads_request(
+            f"{user_id}/threads_publish",
+            {"creation_id": creation_id, "access_token": access_token},
+        )
+        post_id = publish_resp.get("id")
+        if not post_id:
+            raise RuntimeError(f"No post id in publish response: {publish_resp}")
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"post_id": post_id}
