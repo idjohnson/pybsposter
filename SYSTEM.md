@@ -1,4 +1,7 @@
 ### Component Diagram
+
+![Component Diagram](docs/diagrams/component.png)
+
 ```mermaid
 graph TD
     subgraph User
@@ -29,6 +32,9 @@ graph TD
 ```
 
 ### Sequence Diagram: BlueSky Post
+
+![BlueSky Sequence Diagram](docs/diagrams/bluesky_sequence.png)
+
 ```mermaid
 sequenceDiagram
     participant User
@@ -44,6 +50,9 @@ sequenceDiagram
 ```
 
 ### Sequence Diagram: Mastodon Post
+
+![Mastodon Sequence Diagram](docs/diagrams/mastodon_sequence.png)
+
 ```mermaid
 sequenceDiagram
     participant User
